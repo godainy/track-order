@@ -1,0 +1,726 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f47b20">
+  <title>Premium Order Manager</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --orange: #f47b20;
+      --orange-dark: #d95e0b;
+      --cream: #fff7ef;
+      --white: #ffffff;
+      --text: #30251e;
+      --muted: #81766f;
+      --border: #f0e3d9;
+      --green: #18794e;
+      --red: #c43232;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--cream);
+      color: var(--text);
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .hidden { display: none !important; }
+
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: white;
+      width: 100%;
+      max-width: 390px;
+      padding: 28px;
+      border-radius: 22px;
+      box-shadow: 0 12px 40px #8a4b1812;
+    }
+
+    .logo {
+      display: inline-flex;
+      background: var(--orange);
+      color: white;
+      padding: 12px;
+      border-radius: 14px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    h1 { font-size: 24px; margin-bottom: 8px; }
+    h2 { font-size: 19px; margin-top: 0; }
+    p { line-height: 1.5; }
+    .muted { color: var(--muted); font-size: 13px; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin: 14px 0 7px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      color: var(--text);
+      outline-color: var(--orange);
+    }
+
+    textarea { min-height: 75px; resize: vertical; }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 15px;
+      font-weight: bold;
+    }
+
+    .btn-primary {
+      color: white;
+      background: var(--orange);
+    }
+
+    .btn-primary:hover { background: var(--orange-dark); }
+    .btn-secondary { background: var(--cream); color: var(--text); }
+    .btn-danger { background: #fff0f0; color: var(--red); }
+    .full { width: 100%; margin-top: 18px; }
+    .message { font-size: 13px; margin-top: 12px; overflow-wrap: anywhere; }
+
+    header {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 15px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .brand { font-size: 17px; font-weight: bold; }
+    .brand span { color: var(--orange); }
+    .app { max-width: 1100px; margin: auto; padding: 22px 16px 40px; }
+
+    .welcome {
+      background: linear-gradient(120deg, #f47b20, #ffad61);
+      border-radius: 18px;
+      padding: 22px;
+      color: white;
+      margin-bottom: 18px;
+    }
+
+    .welcome h1 { margin-top: 0; }
+    .welcome p { margin-bottom: 0; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat, .panel {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 27px;
+      margin-top: 9px;
+    }
+
+    .panel { margin-bottom: 18px; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 12px;
+    }
+
+    .field { min-width: 0; }
+    .wide { grid-column: 1 / -1; }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .section-title h2 { margin: 0; }
+    .search { margin: 12px 0; }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 850px;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th { background: #fff8f1; }
+    tr:last-child td { border-bottom: 0; }
+
+    .badge {
+      display: inline-block;
+      border-radius: 20px;
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .active { background: #e7f7ed; color: var(--green); }
+    .soon { background: #fff0d7; color: #975400; }
+    .expired { background: #ffebeb; color: var(--red); }
+
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .actions button { padding: 7px 9px; font-size: 12px; }
+    .empty { padding: 24px; text-align: center; color: var(--muted); }
+
+    @media (min-width: 720px) {
+      .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .app { padding-top: 30px; }
+    }
+
+    @media (max-width: 430px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .wide { grid-column: auto; }
+      .login-card { padding: 22px; }
+      header { padding: 13px; }
+      .brand { font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HALAMAN LOGIN -->
+  <section id="loginPage" class="login-page">
+    <div class="login-card">
+      <div class="logo">PO</div>
+      <h1>Premium Order</h1>
+      <p class="muted">Login admin untuk mengelola pesanan aplikasi premium.</p>
+
+      <form id="loginForm">
+        <label for="loginEmail">Email admin</label>
+        <input id="loginEmail" type="email"
+          placeholder="admin@email.com" autocomplete="username" required>
+
+        <label for="loginPassword">Password admin</label>
+        <input id="loginPassword" type="password"
+          placeholder="Masukkan password" autocomplete="current-password" required>
+
+        <button class="btn btn-primary full" id="loginButton" type="submit">
+          Login
+        </button>
+      </form>
+
+      <p id="loginMessage" class="message" role="status"></p>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="dashboardPage" class="hidden">
+    <header>
+      <div class="brand">Premium <span>Order.</span></div>
+      <button id="logoutButton" class="btn btn-secondary">Keluar</button>
+    </header>
+
+    <main class="app">
+      <div class="welcome">
+        <h1>Dashboard Admin</h1>
+        <p>Kelola pesanan, pelanggan, dan masa aktif akunmu.</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="muted">Total order</span>
+          <strong id="totalCount">0</strong>
+        </div>
+        <div class="stat">
+          <span class="muted">Masih aktif</span>
+          <strong id="activeCount">0</strong>
+        </div>
+        <div class="stat">
+          <span class="muted">Hampir habis</span>
+          <strong id="soonCount">0</strong>
+        </div>
+        <div class="stat">
+          <span class="muted">Kedaluwarsa</span>
+          <strong id="expiredCount">0</strong>
+        </div>
+      </div>
+
+      <!-- FORM TAMBAH ORDER -->
+      <section class="panel">
+        <h2>Tambah order baru</h2>
+
+        <form id="orderForm">
+          <div class="form-grid">
+            <div class="field">
+              <label for="customerName">Nama pelanggan *</label>
+              <input id="customerName" required maxlength="120">
+            </div>
+
+            <div class="field">
+              <label for="customerContact">Nomor WA / username Telegram *</label>
+              <input id="customerContact" required maxlength="150"
+                placeholder="Nomor WA atau @username">
+            </div>
+
+            <div class="field">
+              <label for="contactType">Kontak pelanggan *</label>
+              <select id="contactType" required>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Telegram">Telegram</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="application">Nama aplikasi *</label>
+              <input id="application" required maxlength="100"
+                placeholder="Contoh: Canva">
+            </div>
+
+            <div class="field">
+              <label for="duration">Durasi (hari) *</label>
+              <input id="duration" type="number" min="1" max="3650"
+                value="30" required>
+            </div>
+
+            <div class="field">
+              <label for="platform">Platform beli</label>
+              <input id="platform" placeholder="Contoh: Telegram">
+            </div>
+
+            <div class="field">
+              <label for="accountEmail">Email akun</label>
+              <input id="accountEmail" type="email"
+                placeholder="email akun aplikasi">
+            </div>
+
+            <div class="field">
+              <label for="fulfillment">Metode pengambilan</label>
+              <select id="fulfillment">
+                <option value="">Pilih metode</option>
+                <option value="FH">FH</option>
+                <option value="GC">GC</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="groupName">Nama grup FH/GC</label>
+              <input id="groupName" placeholder="Nama grup">
+            </div>
+
+            <div class="field">
+              <label for="startDate">Tanggal mulai *</label>
+              <input id="startDate" type="date" required>
+            </div>
+
+            <div class="field wide">
+              <label for="notes">Catatan akses / pesanan</label>
+              <textarea id="notes" maxlength="2000"
+                placeholder="Catatan tanpa password akun"></textarea>
+            </div>
+          </div>
+
+          <button id="saveButton" type="submit"
+            class="btn btn-primary full">Simpan order</button>
+          <p id="orderMessage" class="message" role="status"></p>
+        </form>
+      </section>
+
+      <!-- TABEL REKAP -->
+      <section class="panel">
+        <div class="section-title">
+          <h2>Rekap pesanan</h2>
+          <button id="refreshButton" class="btn btn-secondary">
+            Muat ulang
+          </button>
+        </div>
+
+        <input id="searchInput" class="search"
+          placeholder="Cari nama, aplikasi, atau kontak...">
+
+        <div id="orderTable" class="table-wrap">
+          <div class="empty">Memuat data...</div>
+        </div>
+        <p id="tableMessage" class="message" role="status"></p>
+      </section>
+    </main>
+  </section>
+
+  <script>
+    // GANTI DUA NILAI INI DENGAN DATA PROJECT SUPABASE KAMU.
+    const SUPABASE_URL = "MASUKKAN_PROJECT_URL";
+    const SUPABASE_ANON_KEY = "MASUKKAN_PUBLISHABLE_KEY";
+
+    const configReady =
+      SUPABASE_URL.startsWith("https://") &&
+      !SUPABASE_URL.includes("MASUKKAN_") &&
+      !SUPABASE_ANON_KEY.includes("MASUKKAN_") &&
+      SUPABASE_ANON_KEY.length > 20;
+
+    let db = null;
+    let orders = [];
+
+    const $ = id => document.getElementById(id);
+
+    function showMessage(id, message, error = false) {
+      const el = $(id);
+      el.textContent = message;
+      el.style.color = error ? "#c43232" : "#18794e";
+    }
+
+    function setPage(loggedIn) {
+      $("loginPage").classList.toggle("hidden", loggedIn);
+      $("dashboardPage").classList.toggle("hidden", !loggedIn);
+    }
+
+    function localDate(date = new Date()) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function addDays(dateString, days) {
+      const [y, m, d] = dateString.split("-").map(Number);
+      const date = new Date(Date.UTC(y, m - 1, d));
+      date.setUTCDate(date.getUTCDate() + days);
+      return date.toISOString().slice(0, 10);
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return "-";
+      const [y, m, d] = dateString.split("-");
+      return `${d}/${m}/${y}`;
+    }
+
+    function getStatus(expiry) {
+      const today = localDate();
+      const daysLeft = Math.round(
+        (Date.parse(expiry + "T00:00:00Z") -
+         Date.parse(today + "T00:00:00Z")) / 86400000
+      );
+
+      if (daysLeft < 0) {
+        return { label: "Expired", className: "expired" };
+      }
+      if (daysLeft <= 3) {
+        return {
+          label: daysLeft === 0 ? "Habis hari ini" : `H-${daysLeft}`,
+          className: "soon"
+        };
+      }
+      return { label: "Aktif", className: "active" };
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    async function loadOrders() {
+      showMessage("tableMessage", "Memuat data...");
+      const { data, error } = await db
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        showMessage("tableMessage",
+          "Gagal memuat data: " + error.message, true);
+        return;
+      }
+
+      orders = data || [];
+      renderOrders();
+    }
+
+    function renderOrders() {
+      const active = orders.filter(o => getStatus(o.expires_at).className === "active");
+      const soon = orders.filter(o => getStatus(o.expires_at).className === "soon");
+      const expired = orders.filter(o => getStatus(o.expires_at).className === "expired");
+
+      $("totalCount").textContent = orders.length;
+      $("activeCount").textContent = active.length;
+      $("soonCount").textContent = soon.length;
+      $("expiredCount").textContent = expired.length;
+
+      const query = $("searchInput").value.trim().toLowerCase();
+      const filtered = orders.filter(o =>
+        [o.order_code, o.customer_name, o.application, o.customer_contact]
+          .some(value => String(value || "").toLowerCase().includes(query))
+      );
+
+      if (filtered.length === 0) {
+        $("orderTable").innerHTML =
+          '<div class="empty">Belum ada pesanan yang cocok.</div>';
+        return;
+      }
+
+      const rows = filtered.map(o => {
+        const status = getStatus(o.expires_at);
+        return `
+          <tr>
+            <td>${escapeHTML(o.order_code)}</td>
+            <td>
+              <strong>${escapeHTML(o.customer_name)}</strong><br>
+              ${escapeHTML(o.customer_contact)}<br>
+              <span class="muted">${escapeHTML(o.contact_type)}</span>
+            </td>
+            <td>
+              ${escapeHTML(o.application)}<br>
+              <span class="muted">${escapeHTML(o.duration_days)} hari</span>
+            </td>
+            <td>
+              ${escapeHTML(o.purchase_platform || "-")}<br>
+              <span class="muted">${escapeHTML(o.account_email || "-")}</span>
+            </td>
+            <td>${formatDate(o.start_date)}</td>
+            <td>${formatDate(o.expires_at)}</td>
+            <td><span class="badge ${status.className}">
+              ${escapeHTML(status.label)}
+            </span></td>
+            <td>
+              <div class="actions">
+                <button class="btn btn-secondary"
+                  data-action="remind" data-id="${o.id}">Ingatkan</button>
+                <button class="btn btn-danger"
+                  data-action="delete" data-id="${o.id}">Hapus</button>
+              </div>
+            </td>
+          </tr>`;
+      }).join("");
+
+      $("orderTable").innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Kode</th><th>Pelanggan</th><th>Aplikasi</th>
+              <th>Platform / Email</th><th>Mulai</th><th>Tanggal habis</th>
+              <th>Status</th><th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+
+      showMessage("tableMessage", `${filtered.length} pesanan ditampilkan.`);
+    }
+
+    async function login(email, password) {
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    }
+
+    $("loginForm").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      if (!configReady) {
+        showMessage("loginMessage",
+          "Isi SUPABASE_URL dan SUPABASE_ANON_KEY di kode terlebih dahulu.", true);
+        return;
+      }
+
+      $("loginButton").disabled = true;
+      $("loginButton").textContent = "Memeriksa...";
+      showMessage("loginMessage", "");
+
+      try {
+        await login($("loginEmail").value.trim(), $("loginPassword").value);
+        $("loginPassword").value = "";
+      } catch (error) {
+        showMessage("loginMessage",
+          "Login gagal. Periksa email, password, dan pengaturan Supabase.", true);
+      } finally {
+        $("loginButton").disabled = false;
+        $("loginButton").textContent = "Login";
+      }
+    });
+
+    $("logoutButton").addEventListener("click", async () => {
+      const { error } = await db.auth.signOut();
+      if (error) {
+        alert("Gagal keluar: " + error.message);
+        return;
+      }
+      orders = [];
+      setPage(false);
+    });
+
+    $("orderForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      const duration = Number($("duration").value);
+      const start = $("startDate").value;
+
+      if (!Number.isInteger(duration) || duration < 1 || duration > 3650) {
+        showMessage("orderMessage", "Durasi harus antara 1 dan 3650 hari.", true);
+        return;
+      }
+
+      if (!start) {
+        showMessage("orderMessage", "Tanggal mulai wajib diisi.", true);
+        return;
+      }
+
+      const order = {
+        order_code: "ORD-" + Date.now().toString(36).toUpperCase(),
+        customer_name: $("customerName").value.trim(),
+        customer_contact: $("customerContact").value.trim(),
+        contact_type: $("contactType").value,
+        application: $("application").value.trim(),
+        duration_days: duration,
+        purchase_platform: $("platform").value.trim() || null,
+        account_email: $("accountEmail").value.trim() || null,
+        fulfillment_method: $("fulfillment").value || null,
+        fulfillment_group: $("groupName").value.trim() || null,
+        start_date: start,
+        expires_at: addDays(start, duration),
+        order_notes: $("notes").value.trim() || null
+      };
+
+      $("saveButton").disabled = true;
+      $("saveButton").textContent = "Menyimpan...";
+
+      const { error } = await db.from("orders").insert(order);
+
+      $("saveButton").disabled = false;
+      $("saveButton").textContent = "Simpan order";
+
+      if (error) {
+        showMessage("orderMessage",
+          "Gagal menyimpan: " + error.message, true);
+        return;
+      }
+
+      $("orderForm").reset();
+      $("startDate").value = localDate();
+      $("duration").value = "30";
+      showMessage("orderMessage", "Order berhasil disimpan.");
+      await loadOrders();
+    });
+
+    $("searchInput").addEventListener("input", renderOrders);
+    $("refreshButton").addEventListener("click", loadOrders);
+
+    $("orderTable").addEventListener("click", async event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+
+      const order = orders.find(o => String(o.id) === button.dataset.id);
+      if (!order) return;
+
+      if (button.dataset.action === "delete") {
+        if (!confirm(`Hapus order ${order.order_code}?`)) return;
+
+        const { error } = await db.from("orders").delete().eq("id", order.id);
+
+        if (error) {
+          showMessage("tableMessage",
+            "Gagal menghapus order: " + error.message, true);
+          return;
+        }
+        await loadOrders();
+      }
+
+      if (button.dataset.action === "remind") {
+        const message =
+          `Halo ${order.customer_name}, masa aktif ${order.application} ` +
+          `kamu akan berakhir pada ${formatDate(order.expires_at)}. ` +
+            `Jika ingin memperpanjang, silakan hubungi admin.`;
+
+        const url = order.contact_type === "WhatsApp"
+          ? "https://wa.me/" + order.customer_contact.replace(/\D/g, "") +
+            "?text=" + encodeURIComponent(message)
+          : "https://t.me/" +
+            encodeURIComponent(order.customer_contact.replace(/^@/, ""));
+
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+    });
+
+    async function startApp() {
+      $("startDate").value = localDate();
+
+      if (!configReady || !window.supabase) {
+        showMessage("loginMessage",
+          "Website perlu konfigurasi Supabase sebelum digunakan.", true);
+        return;
+      }
+
+      db = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+
+      const { data: { session }, error } = await db.auth.getSession();
+
+      if (error) {
+        showMessage("loginMessage", "Gagal memeriksa sesi login.", true);
+        return;
+      }
+
+      setPage(Boolean(session));
+
+      db.auth.onAuthStateChange((event, session) => {
+        if (event === "SIGNED_OUT") {
+          setPage(false);
+        }
+       if (event === "SIGNED_IN" && session) {
+          setPage(true);
+          setTimeout(() => loadOrders(), 0);
+        }
+      });
+
+      if (session) await loadOrders();
+    }
+
+    startApp();
+  </script>
+</body>
+</html>
