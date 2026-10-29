@@ -391,8 +391,8 @@
 
   <script>
     // GANTI DUA NILAI INI DENGAN DATA PROJECT SUPABASE KAMU.
-    const SUPABASE_URL = "MASUKKAN_PROJECT_URL";
-    const SUPABASE_ANON_KEY = "MASUKKAN_PUBLISHABLE_KEY";
+    const SUPABASE_URL = "https://hwitofyovpvndijrxekh.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_0_ZdnVmt5iSnu2nxe3fJ1w_pZInDB1Q";
 
     const configReady =
       SUPABASE_URL.startsWith("https://") &&
